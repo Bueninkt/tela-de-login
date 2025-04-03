@@ -1,75 +1,39 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.querySelector("form");
-    const emailInput = document.querySelector("input[type='email']");
-    const senhaInput = document.queryelector("input[type='password']");
-    const errorMessage = document.createElement("p");
-    errorMessage.style.color = "red";
-    errorMessage.style.fontSize = "14px";
-    errorMessage.style.marginTop = "5px";
-    loginForm.appendChild(errorMessage);
+const loginForm = document.getElementById("loginForm");
+const emailInput = document.getElementById("email");
+const senhaInput = document.getElementById("senha");
+const errorMessage = document.getElementById("errorMessage");
 
-    let validEmail = "";
-    let validSenha = "";
+async function loginUser(email, senha) {
+    try {
+        const response = await fetch("https://back-spider.vercel.app/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, senha })
+        });
 
-    async function fetchUserData() {
-        try {
-            console.log("Buscando dados do usuário...");
-            const response = await fetch("https://back-spider.vercel.app/login");
-            const data = await response.json();
-            if (response.ok) {
-                validEmail = data.email;
-                validSenha = data.senha;
-                console.log("Dados recebidos da API:", data);
-            } else {
-                console.error("Erro na resposta da API:", data);
-            }
-        } catch (error) {
-            console.error("Erro ao buscar dados do usuário:", error);
+        if (response.ok) {
+            alert("Login realizado com sucesso!");
+            window.location.href = "https://bueninkt.github.io/tela-home/"; // Substituir pela URL correta
+        } else {
+            errorMessage.textContent = "Email ou senha inválidos. Tente novamente.";
         }
+    } catch (error) {
+        console.error("Erro ao tentar fazer login:", error);
+        errorMessage.textContent = "Erro ao conectar ao servidor. Tente novamente mais tarde.";
+    }
+}
+
+loginForm.addEventListener("submit", (event) => {
+    event.preventDefault()
+    const email = emailInput.value.trim();
+    const senha = senhaInput.value.trim();
+
+    if (!email || !senha) {
+        errorMessage.textContent = "Por favor, preencha todos os campos!";
+        return;
     }
 
-    fetchUserData();
-
-    emailInput.addEventListener("input", () => {
-        console.log("Email digitado:", emailInput.value);
-        if (emailInput.value !== validEmail) {
-            errorMessage.textContent = "Usuário não cadastrado";
-        } else {
-            errorMessage.textContent = "";
-        }
-    });
-
-    senhaInput.addEventListener("input", () => {
-        console.log("Senha digitada:", senhaInput.value);
-        if (senhaInput.value !== validSenha) {
-            errorMessage.textContent = "Senha incorreta";
-        } else {
-            errorMessage.textContent = "";
-        }
-    });
-
-    loginForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        
-        const email = emailInput.value;
-        const senha = senhaInput.value;
-        console.log("Tentativa de login com:", { email, senha });
-        
-        if (!email || !senha) {
-            alert("Por favor, preencha todos os campos!");
-            return;
-        }
-
-        if (email !== validEmail || senha !== validSenha) {
-            console.warn("Credenciais inválidas");
-            errorMessage.textContent = "Email ou senha inválidos. Tente novamente.";
-            return;
-        }
-        
-        alert("Login realizado com sucesso!");
-        console.log("Redirecionando para a página home...");
-        setTimeout(() => {
-            window.location.href = "";
-        }, 1000);
-    });
+    loginUser(email, senha);
 });
